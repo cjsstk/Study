@@ -1,0 +1,13 @@
+{
+	"FileVersion": 3,
+	"EngineAssociation": "{88A94E01-4118-EA61-E6A4-91ABB3CEE7A3}",
+	"Category": "",
+	"Description": "",
+	"Modules": [
+		{
+			"Name": "Study",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	]
+}
