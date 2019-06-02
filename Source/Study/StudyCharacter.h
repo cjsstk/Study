@@ -6,6 +6,17 @@
 #include "GameFramework/Character.h"
 #include "StudyCharacter.generated.h"
 
+USTRUCT(Blueprintable)
+struct FAnimMontages
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditDefaultsOnly)
+	UAnimMontage* ShootProjectile;
+
+};
+
+
 UCLASS(config=Game)
 class AStudyCharacter : public ACharacter
 {
@@ -14,10 +25,11 @@ class AStudyCharacter : public ACharacter
 public:
 	AStudyCharacter();
 
-	/** Returns CameraBoom subobject **/
-	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
-	/** Returns FollowCamera subobject **/
-	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
+	class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
+	class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
+	class USkillComponent* GetSkillComponent() const { return SkillComponent; }
+
+	const FAnimMontages* GetCharacterMontages() const { return &CharacterMontages; }
 
 protected:
 	/** Called for forwards/backward input */
@@ -26,30 +38,26 @@ protected:
 	/** Called for side to side input */
 	void MoveRight(float Value);
 
-	/** 
-	 * Called via input to turn at a given rate. 
-	 * @param Rate	This is a normalized rate, i.e. 1.0 means 100% of desired turn rate
-	 */
 	void TurnAtRate(float Rate);
-
-	/**
-	 * Called via input to turn look up/down at a given rate. 
-	 * @param Rate	This is a normalized rate, i.e. 1.0 means 100% of desired turn rate
-	 */
 	void LookUpAtRate(float Rate);
 
 	// APawn interface
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	// End of APawn interface
 
+	void OnInputAttack();
+
 private:
-	/** Camera boom positioning the camera behind the character */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class USpringArmComponent* CameraBoom;
 
-	/** Follow camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UCameraComponent* FollowCamera;
 
+	UPROPERTY(VisibleAnywhere)
+	class USkillComponent* SkillComponent;
+
+	UPROPERTY(EditDefaultsOnly)
+	FAnimMontages CharacterMontages;
 };
 

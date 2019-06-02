@@ -1,12 +1,15 @@
 // Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
 
 #include "StudyCharacter.h"
+
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/InputComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
+
+#include "SkillComponent.h"
 
 //////////////////////////////////////////////////////////////////////////
 // AStudyCharacter
@@ -29,7 +32,10 @@ AStudyCharacter::AStudyCharacter()
 
 	// Create a follow camera
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
-	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
+	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
+
+	SkillComponent = CreateDefaultSubobject<USkillComponent>(TEXT("SkillComponent"));
+
 }
 
 void AStudyCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
@@ -38,6 +44,8 @@ void AStudyCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInp
 	check(PlayerInputComponent);
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
+
+	PlayerInputComponent->BindAction("Attack", IE_Pressed, this, &AStudyCharacter::OnInputAttack);
 
 	PlayerInputComponent->BindAxis("MoveForward", this, &AStudyCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &AStudyCharacter::MoveRight);
@@ -49,6 +57,16 @@ void AStudyCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInp
 	PlayerInputComponent->BindAxis("TurnRate", this, &AStudyCharacter::TurnAtRate);
 	PlayerInputComponent->BindAxis("LookUp", this, &APawn::AddControllerPitchInput);
 	PlayerInputComponent->BindAxis("LookUpRate", this, &AStudyCharacter::LookUpAtRate);
+}
+
+void AStudyCharacter::OnInputAttack()
+{
+	if (ensure(SkillComponent))
+	{
+		FUseSkillParams Params;
+		Params.SkillType = ESkillType::Projectile;
+		SkillComponent->UseSkill(Params);
+	}
 }
 
 void AStudyCharacter::TurnAtRate(float Rate)
