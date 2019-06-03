@@ -5,13 +5,12 @@
 #include "Animation/AnimInstance.h"
 
 #include "StudyCharacter.h"
+#include "StudyProjectile.h"
 
 // Sets default values for this component's properties
 USkillComponent::USkillComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
-
-	// ...
 }
 
 void USkillComponent::BeginPlay()
@@ -51,7 +50,7 @@ bool USkillComponent::PlayAnimMontage()
 		return false;
 	}
 
-	ACharacter* Character = GetCharacter();
+	AStudyCharacter* Character = GetCharacter();
 	if (!ensure(Character))
 	{
 		return false;
@@ -73,13 +72,39 @@ bool USkillComponent::PlayAnimMontage()
 
 	bPlaying = true;
 
+	Character->OnUseSkillAnimNotify.AddUniqueDynamic(this, &USkillComponent::OnUseSkillAnimNotify);
 	AnimInstance->OnMontageEnded.AddUniqueDynamic(this, &USkillComponent::OnMontageEnded);
 
 	return true;
 }
 
+void USkillComponent::OnUseSkillAnimNotify(ESkillType SkillType)
+{
+	switch (SkillType)
+	{
+	case ESkillType::Projectile:
+	{
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.Instigator = Cast<APawn>(GetOwner());
+
+		AStudyProjectile* Projectile = GetWorld()->SpawnActor<AStudyProjectile>(ProjectileClass.Get(), GetOwner()->GetActorLocation(), GetOwner()->GetActorForwardVector().Rotation(), SpawnParams);
+		break;
+	}
+	case ESkillType::Channeling:
+		break;
+	default:
+		break;
+	}
+}
+
 void USkillComponent::OnMontageEnded(UAnimMontage * EndedAnimMontage, bool bInterrupted)
 {
+	AStudyCharacter* Character = GetCharacter();
+	if (ensure(Character))
+	{
+		Character->OnUseSkillAnimNotify.RemoveDynamic(this, &USkillComponent::OnUseSkillAnimNotify);
+	}
+
 	bPlaying = false;
 }
 

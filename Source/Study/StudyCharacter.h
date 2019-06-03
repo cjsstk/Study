@@ -3,8 +3,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "SkillType.h"
 #include "GameFramework/Character.h"
 #include "StudyCharacter.generated.h"
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCharacterOnUseSkillAnimNotify, ESkillType, SkillType);
 
 USTRUCT(Blueprintable)
 struct FAnimMontages
@@ -15,7 +18,6 @@ struct FAnimMontages
 	UAnimMontage* ShootProjectile;
 
 };
-
 
 UCLASS(config=Game)
 class AStudyCharacter : public ACharacter
@@ -30,6 +32,8 @@ public:
 	class USkillComponent* GetSkillComponent() const { return SkillComponent; }
 
 	const FAnimMontages* GetCharacterMontages() const { return &CharacterMontages; }
+
+	FCharacterOnUseSkillAnimNotify OnUseSkillAnimNotify;
 
 protected:
 	/** Called for forwards/backward input */

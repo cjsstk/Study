@@ -4,17 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "SkillType.h"
 #include "SkillComponent.generated.h"
 
-
-UENUM(BlueprintType)
-enum class ESkillType : uint8
-{
-	Invalid,
-	Projectile,
-	Channeling,
-	Count		UMETA(Hidden)
-};
 
 USTRUCT(Blueprintable)
 struct FUseSkillParams
@@ -50,6 +42,9 @@ private:
 	bool PlayAnimMontage();
 
 	UFUNCTION()
+	void OnUseSkillAnimNotify(ESkillType SkillType);
+
+	UFUNCTION()
 	void OnMontageEnded(UAnimMontage* EndedAnimMontage, bool bInterrupted);
 
 	bool CanUseSkill();
@@ -59,5 +54,8 @@ private:
 
 	bool bPlaying = false;
 		
+	/** Temp */
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<class AStudyProjectile> ProjectileClass;
 	
 };
