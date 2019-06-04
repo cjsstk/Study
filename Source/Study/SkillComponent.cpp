@@ -84,10 +84,16 @@ void USkillComponent::OnUseSkillAnimNotify(ESkillType SkillType)
 	{
 	case ESkillType::Projectile:
 	{
-		FActorSpawnParameters SpawnParams;
-		SpawnParams.Instigator = Cast<APawn>(GetOwner());
+		AStudyCharacter* Character = Cast<AStudyCharacter>(GetOwner());
+		if (ensure(Character))
+		{
+			FActorSpawnParameters SpawnParams;
+			SpawnParams.Instigator = Character;
 
-		AStudyProjectile* Projectile = GetWorld()->SpawnActor<AStudyProjectile>(ProjectileClass.Get(), GetOwner()->GetActorLocation(), GetOwner()->GetActorForwardVector().Rotation(), SpawnParams);
+			const FRotator ShootDirection = Character->GetControlRotation();
+
+			AStudyProjectile* Projectile = GetWorld()->SpawnActor<AStudyProjectile>(ProjectileClass.Get(), GetOwner()->GetActorLocation(), ShootDirection, SpawnParams);
+		}
 		break;
 	}
 	case ESkillType::Channeling:
