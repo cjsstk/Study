@@ -32,6 +32,7 @@ public:
 	class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 	class USkillComponent* GetSkillComponent() const { return SkillComponent; }
+	class UHealthPointComponent* GetHealthPointComponent() const { return HealthPointComponent; }
 
 	const FAnimMontages* GetCharacterMontages() const { return &CharacterMontages; }
 
@@ -64,6 +65,9 @@ private:
 
 	UPROPERTY(VisibleAnywhere)
 	class USkillComponent* SkillComponent;
+
+	UPROPERTY(VisibleAnywhere)
+	class UHealthPointComponent* HealthPointComponent;
 
 	UPROPERTY(EditDefaultsOnly)
 	FAnimMontages CharacterMontages;

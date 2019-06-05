@@ -10,6 +10,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "DrawDebugHelpers.h"
 
+#include "HealthPointComponent.h"
 #include "SkillComponent.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -36,6 +37,8 @@ AStudyCharacter::AStudyCharacter()
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
 
 	SkillComponent = CreateDefaultSubobject<USkillComponent>(TEXT("SkillComponent"));
+
+	HealthPointComponent = CreateDefaultSubobject<UHealthPointComponent>(TEXT("HealthPointComponent"));
 
 }
 
