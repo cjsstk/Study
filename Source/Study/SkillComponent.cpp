@@ -10,7 +10,7 @@
 // Sets default values for this component's properties
 USkillComponent::USkillComponent()
 {
-	PrimaryComponentTick.bCanEverTick = true;
+	PrimaryComponentTick.bCanEverTick = false;
 }
 
 void USkillComponent::BeginPlay()
@@ -92,7 +92,10 @@ void USkillComponent::OnUseSkillAnimNotify(ESkillType SkillType)
 
 			const FRotator ShootDirection = Character->GetControlRotation();
 
-			AStudyProjectile* Projectile = GetWorld()->SpawnActor<AStudyProjectile>(ProjectileClass.Get(), GetOwner()->GetActorLocation(), ShootDirection, SpawnParams);
+			const static FName SocketName = FName(TEXT("SpawnLocation"));
+			const FVector SpawnLocation = Character->GetMesh()->GetSocketLocation(SocketName);
+
+			AStudyProjectile* Projectile = GetWorld()->SpawnActor<AStudyProjectile>(ProjectileClass.Get(), SpawnLocation, ShootDirection, SpawnParams);
 		}
 		break;
 	}
