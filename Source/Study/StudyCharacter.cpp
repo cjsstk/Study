@@ -8,6 +8,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "DrawDebugHelpers.h"
 
 #include "SkillComponent.h"
 
@@ -79,6 +80,27 @@ void AStudyCharacter::LookUpAtRate(float Rate)
 {
 	// calculate delta for this frame from the rate information
 	AddControllerPitchInput(Rate * CVarLookUpRate.GetValueOnGameThread() * GetWorld()->GetDeltaSeconds());
+}
+
+void AStudyCharacter::Tick(float DeltaSeconds)
+{
+
+	if (!DebugString.IsEmpty())
+	{
+		DrawDebugString(GetWorld(), FVector(0, 0, 100), DebugString, this, FColor::White, 0, true);
+
+		DebugString.Empty();
+	}
+}
+
+void AStudyCharacter::AddDebugString(const FString & InDebugString, bool bAddNewLine)
+{
+	DebugString += InDebugString;
+
+	if (bAddNewLine)
+	{
+		DebugString += TEXT("\n");
+	}
 }
 
 void AStudyCharacter::MoveForward(float Value)

@@ -27,11 +27,15 @@ class AStudyCharacter : public ACharacter
 public:
 	AStudyCharacter();
 
+	virtual void Tick(float DeltaSeconds) override;
+
 	class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 	class USkillComponent* GetSkillComponent() const { return SkillComponent; }
 
 	const FAnimMontages* GetCharacterMontages() const { return &CharacterMontages; }
+
+	void AddDebugString(const FString& InDebugString, bool bAddNewLine = true);
 
 	FCharacterOnUseSkillAnimNotify OnUseSkillAnimNotify;
 
@@ -63,5 +67,8 @@ private:
 
 	UPROPERTY(EditDefaultsOnly)
 	FAnimMontages CharacterMontages;
+
+	FString DebugString;
+
 };
 
