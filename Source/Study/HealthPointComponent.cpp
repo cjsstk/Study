@@ -4,6 +4,11 @@
 
 #include "StudyCharacter.h"
 
+static TAutoConsoleVariable<int32> CVarHealthDebug(
+	TEXT("study.healthDebug"),
+	0,
+	TEXT("1: enable debug, 0: disable debug"), ECVF_Cheat);
+
 // Sets default values for this component's properties
 UHealthPointComponent::UHealthPointComponent()
 {
@@ -36,10 +41,13 @@ void UHealthPointComponent::TickComponent(float DeltaTime, ELevelTick TickType, 
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	AStudyCharacter* Character = GetOwnerCharacter();
-	if (Character)
+	if (CVarHealthDebug.GetValueOnGameThread() > 0)
 	{
-		Character->AddDebugString(FString::Printf(TEXT("HealthPoint: %d/%d"), CurrentHealthPoint, MaxHealthPoint));
+		AStudyCharacter* Character = GetOwnerCharacter();
+		if (Character)
+		{
+			Character->AddDebugString(FString::Printf(TEXT("HealthPoint: [%d/%d]"), CurrentHealthPoint, MaxHealthPoint));
+		}
 	}
 }
 
