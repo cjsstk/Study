@@ -19,6 +19,4 @@ public:
 	virtual void Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation) override;
 	
 private:
-	UPROPERTY(EditAnywhere)
-	ESkillType SkillType = ESkillType::Invalid;
 };

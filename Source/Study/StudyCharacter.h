@@ -7,7 +7,7 @@
 #include "GameFramework/Character.h"
 #include "StudyCharacter.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCharacterOnUseSkillAnimNotify, ESkillType, SkillType);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FCharacterOnUseSkillAnimNotify);
 
 USTRUCT(Blueprintable)
 struct FAnimMontages
@@ -71,6 +71,8 @@ private:
 
 	UPROPERTY(EditDefaultsOnly)
 	FAnimMontages CharacterMontages;
+
+	int32 CurrentSkillNumber = 1;
 
 	FString DebugString;
 

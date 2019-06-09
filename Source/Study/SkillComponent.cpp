@@ -6,6 +6,7 @@
 
 #include "StudyCharacter.h"
 #include "StudyProjectile.h"
+#include "StudyGameInstance.h"
 
 // Sets default values for this component's properties
 USkillComponent::USkillComponent()
@@ -18,7 +19,6 @@ void USkillComponent::BeginPlay()
 	Super::BeginPlay();
 
 	// ...
-	
 }
 
 AStudyCharacter * USkillComponent::GetCharacter()
@@ -78,24 +78,34 @@ bool USkillComponent::PlayAnimMontage()
 	return true;
 }
 
-void USkillComponent::OnUseSkillAnimNotify(ESkillType SkillType)
+void USkillComponent::OnUseSkillAnimNotify()
 {
-	switch (SkillType)
+	switch (CurrentSkillType)
 	{
 	case ESkillType::Projectile:
 	{
 		AStudyCharacter* Character = Cast<AStudyCharacter>(GetOwner());
 		if (ensure(Character))
 		{
-			FActorSpawnParameters SpawnParams;
-			SpawnParams.Instigator = Character;
+			if (!ProjectileClassPath.IsEmpty())
+			{
+				FActorSpawnParameters SpawnParams;
+				SpawnParams.Instigator = Character;
 
-			const FRotator ShootDirection = Character->GetControlRotation();
+				const FRotator ShootDirection = Character->GetControlRotation();
 
-			const static FName SocketName = FName(TEXT("SpawnLocation"));
-			const FVector SpawnLocation = Character->GetMesh()->GetSocketLocation(SocketName);
+				const static FName SocketName = FName(TEXT("SpawnLocation"));
+				const FVector SpawnLocation = Character->GetMesh()->GetSocketLocation(SocketName);
 
-			AStudyProjectile* Projectile = GetWorld()->SpawnActor<AStudyProjectile>(ProjectileClass.Get(), SpawnLocation, ShootDirection, SpawnParams);
+				const FSoftClassPath ProjectilePath = ProjectileClassPath;
+				UClass* ProjectileClass = ProjectilePath.TryLoadClass<AStudyProjectile>();
+
+				AStudyProjectile* Projectile = GetWorld()->SpawnActor<AStudyProjectile>(ProjectileClass, SpawnLocation, ShootDirection, SpawnParams);
+				if (!ensure(Projectile))
+				{
+					return;
+				}
+			}
 		}
 		break;
 	}
@@ -115,6 +125,8 @@ void USkillComponent::OnMontageEnded(UAnimMontage * EndedAnimMontage, bool bInte
 	}
 
 	bPlaying = false;
+	ProjectileClassPath.Empty();
+	CurrentSkillType = ESkillType::Invalid;
 }
 
 bool USkillComponent::CanUseSkill()
@@ -147,7 +159,26 @@ void USkillComponent::UseSkill(FUseSkillParams UseSkillParams)
 		return;
 	}
 
-	switch (UseSkillParams.SkillType)
+	const FSkillData* SkillData = UStudyGameInstance::GetSkillData(UseSkillParams.CmsSkillKey);
+	if (!ensure(SkillData))
+	{
+		return;
+	}
+
+	CurrentSkillType = SkillData->SkillType;
+	ProjectileClassPath = SkillData->ProjectileClass;
+	if (!SkillData->SpawnActorClass.IsEmpty())
+	{
+		const FSoftClassPath SpawnActorPath = SkillData->SpawnActorClass;
+		UClass* SpawnActorClass = SpawnActorPath.TryLoadClass<AActor>();
+
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.Instigator = Character;
+
+		AActor* SpawnActor = GetWorld()->SpawnActor<AActor>(SpawnActorClass, Character->GetActorLocation(), Character->GetActorRotation(), SpawnParams);
+	}
+
+	switch (CurrentSkillType)
 	{
 	case ESkillType::Projectile:
 		SetAnimMontage(Character->GetCharacterMontages()->ShootProjectile);

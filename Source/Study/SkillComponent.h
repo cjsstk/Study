@@ -15,7 +15,7 @@ struct FUseSkillParams
 
 public:
 	UPROPERTY()
-	ESkillType SkillType = ESkillType::Invalid;
+	int32 CmsSkillKey = 0;
 
 };
 
@@ -42,7 +42,7 @@ private:
 	bool PlayAnimMontage();
 
 	UFUNCTION()
-	void OnUseSkillAnimNotify(ESkillType SkillType);
+	void OnUseSkillAnimNotify();
 
 	UFUNCTION()
 	void OnMontageEnded(UAnimMontage* EndedAnimMontage, bool bInterrupted);
@@ -53,9 +53,12 @@ private:
 	class UAnimMontage* AnimMontage = nullptr;
 
 	bool bPlaying = false;
-		
-	/** Temp */
-	UPROPERTY(EditAnywhere)
-	TSubclassOf<class AStudyProjectile> ProjectileClass;
 	
+	/** 
+	 * SkillData
+	 */
+	ESkillType CurrentSkillType = ESkillType::Invalid;
+
+	FString ProjectileClassPath;
+
 };

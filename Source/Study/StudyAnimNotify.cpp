@@ -11,9 +11,7 @@ void UStudyAnimNotify_Projectile::Notify(USkeletalMeshComponent* MeshComp, UAnim
 	AStudyCharacter* Character = MeshComp ? Cast<AStudyCharacter>(MeshComp->GetOwner()) : nullptr;
 	if (Character)
 	{
-		ensure(SkillType != ESkillType::Invalid);
-
-		Character->OnUseSkillAnimNotify.Broadcast(SkillType);
+		Character->OnUseSkillAnimNotify.Broadcast();
 	}
 }
 

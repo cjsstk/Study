@@ -68,7 +68,7 @@ void AStudyCharacter::OnInputAttack()
 	if (ensure(SkillComponent))
 	{
 		FUseSkillParams Params;
-		Params.SkillType = ESkillType::Projectile;
+		Params.CmsSkillKey = CurrentSkillNumber;
 		SkillComponent->UseSkill(Params);
 	}
 }
