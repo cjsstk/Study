@@ -31,6 +31,7 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	void UseSkill(FUseSkillParams UseSkillParams);
+	void StopSkill();
 
 protected:
 	// Called when the game starts
@@ -40,6 +41,8 @@ private:
 	class AStudyCharacter* GetCharacter();
 	void SetAnimMontage(class UAnimMontage* NewAnimMontage);
 	bool PlayAnimMontage();
+	void StopAnimMontage();
+	void FinishSkill();
 
 	UFUNCTION()
 	void OnUseSkillAnimNotify();
@@ -57,8 +60,7 @@ private:
 	/** 
 	 * SkillData
 	 */
+	int32 CurrentSkillCmsKey = 0;
 	ESkillType CurrentSkillType = ESkillType::Invalid;
-
-	FString ProjectileClassPath;
 
 };

@@ -23,10 +23,10 @@ public:
 	ESkillType SkillType;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data")
-	FString ProjectileClass;
+	TSoftClassPtr<class AStudyProjectile> ProjectileClass;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data")
-	FString SpawnActorClass;
+	TSoftClassPtr<class AActor> SpawnActorClass;
 };
 
 /**

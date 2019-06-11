@@ -50,6 +50,7 @@ void AStudyCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInp
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
 
 	PlayerInputComponent->BindAction("Attack", IE_Pressed, this, &AStudyCharacter::OnInputAttack);
+	PlayerInputComponent->BindAction("Attack", IE_Released, this, &AStudyCharacter::OnReleaseAttack);
 
 	PlayerInputComponent->BindAxis("MoveForward", this, &AStudyCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &AStudyCharacter::MoveRight);
@@ -70,6 +71,15 @@ void AStudyCharacter::OnInputAttack()
 		FUseSkillParams Params;
 		Params.CmsSkillKey = CurrentSkillNumber;
 		SkillComponent->UseSkill(Params);
+	}
+}
+
+void AStudyCharacter::OnReleaseAttack()
+{
+	if (ensure(SkillComponent))
+	{
+		SkillComponent->StopSkill();
+		OnStopSkill.Broadcast();
 	}
 }
 

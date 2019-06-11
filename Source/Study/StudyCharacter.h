@@ -8,6 +8,7 @@
 #include "StudyCharacter.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FCharacterOnUseSkillAnimNotify);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FCharacterOnStopSkill);
 
 USTRUCT(Blueprintable)
 struct FAnimMontages
@@ -16,6 +17,9 @@ struct FAnimMontages
 
 	UPROPERTY(EditDefaultsOnly)
 	UAnimMontage* ShootProjectile;
+
+	UPROPERTY(EditDefaultsOnly)
+	UAnimMontage* ChannelingSkill;
 
 };
 
@@ -39,6 +43,7 @@ public:
 	void AddDebugString(const FString& InDebugString, bool bAddNewLine = true);
 
 	FCharacterOnUseSkillAnimNotify OnUseSkillAnimNotify;
+	FCharacterOnStopSkill OnStopSkill;
 
 protected:
 	/** Called for forwards/backward input */
@@ -55,6 +60,7 @@ protected:
 	// End of APawn interface
 
 	void OnInputAttack();
+	void OnReleaseAttack();
 
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
@@ -72,7 +78,7 @@ private:
 	UPROPERTY(EditDefaultsOnly)
 	FAnimMontages CharacterMontages;
 
-	int32 CurrentSkillNumber = 1;
+	int32 CurrentSkillNumber = 2;
 
 	FString DebugString;
 

@@ -78,6 +78,50 @@ bool USkillComponent::PlayAnimMontage()
 	return true;
 }
 
+void USkillComponent::StopAnimMontage()
+{
+	if (!bPlaying)
+	{
+		ensure(0);
+		return;
+	}
+
+	if (!ensure(AnimMontage))
+	{
+		return;
+	}
+
+	AStudyCharacter* Character = GetCharacter();
+	if (!ensure(Character))
+	{
+		return;
+	}
+
+	UAnimInstance* AnimInstance = Character->GetMesh() ? Character->GetMesh()->GetAnimInstance() : nullptr;
+
+	if (!ensure(AnimInstance))
+	{
+		return;
+	}
+
+	AnimInstance->Montage_Stop(0.1f, AnimMontage);
+
+	bPlaying = false;
+}
+
+void USkillComponent::FinishSkill()
+{
+	AStudyCharacter* Character = GetCharacter();
+	if (ensure(Character))
+	{
+		Character->OnUseSkillAnimNotify.RemoveDynamic(this, &USkillComponent::OnUseSkillAnimNotify);
+	}
+
+	bPlaying = false;
+	CurrentSkillCmsKey = 0;
+	CurrentSkillType = ESkillType::Invalid;
+}
+
 void USkillComponent::OnUseSkillAnimNotify()
 {
 	switch (CurrentSkillType)
@@ -87,7 +131,14 @@ void USkillComponent::OnUseSkillAnimNotify()
 		AStudyCharacter* Character = Cast<AStudyCharacter>(GetOwner());
 		if (ensure(Character))
 		{
-			if (!ProjectileClassPath.IsEmpty())
+			const FSkillData* SkillData = UStudyGameInstance::GetSkillData(CurrentSkillCmsKey);
+			if (!ensure(SkillData))
+			{
+				return;
+			}
+
+			UClass* ProjectileClass = SkillData->ProjectileClass.LoadSynchronous();
+			if (ensure(ProjectileClass))
 			{
 				FActorSpawnParameters SpawnParams;
 				SpawnParams.Instigator = Character;
@@ -96,9 +147,6 @@ void USkillComponent::OnUseSkillAnimNotify()
 
 				const static FName SocketName = FName(TEXT("SpawnLocation"));
 				const FVector SpawnLocation = Character->GetMesh()->GetSocketLocation(SocketName);
-
-				const FSoftClassPath ProjectilePath = ProjectileClassPath;
-				UClass* ProjectileClass = ProjectilePath.TryLoadClass<AStudyProjectile>();
 
 				AStudyProjectile* Projectile = GetWorld()->SpawnActor<AStudyProjectile>(ProjectileClass, SpawnLocation, ShootDirection, SpawnParams);
 				if (!ensure(Projectile))
@@ -118,15 +166,7 @@ void USkillComponent::OnUseSkillAnimNotify()
 
 void USkillComponent::OnMontageEnded(UAnimMontage * EndedAnimMontage, bool bInterrupted)
 {
-	AStudyCharacter* Character = GetCharacter();
-	if (ensure(Character))
-	{
-		Character->OnUseSkillAnimNotify.RemoveDynamic(this, &USkillComponent::OnUseSkillAnimNotify);
-	}
-
-	bPlaying = false;
-	ProjectileClassPath.Empty();
-	CurrentSkillType = ESkillType::Invalid;
+	FinishSkill();
 }
 
 bool USkillComponent::CanUseSkill()
@@ -165,23 +205,33 @@ void USkillComponent::UseSkill(FUseSkillParams UseSkillParams)
 		return;
 	}
 
+	CurrentSkillCmsKey = UseSkillParams.CmsSkillKey;
 	CurrentSkillType = SkillData->SkillType;
-	ProjectileClassPath = SkillData->ProjectileClass;
-	if (!SkillData->SpawnActorClass.IsEmpty())
-	{
-		const FSoftClassPath SpawnActorPath = SkillData->SpawnActorClass;
-		UClass* SpawnActorClass = SpawnActorPath.TryLoadClass<AActor>();
 
+	UClass* SpawnActorClass = SkillData->SpawnActorClass.LoadSynchronous();
+	if (ensure(SpawnActorClass))
+	{
 		FActorSpawnParameters SpawnParams;
 		SpawnParams.Instigator = Character;
+		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
-		AActor* SpawnActor = GetWorld()->SpawnActor<AActor>(SpawnActorClass, Character->GetActorLocation(), Character->GetActorRotation(), SpawnParams);
+		const static FName SocketName = FName(TEXT("SpawnLocation"));
+		const FVector SpawnLocation = Character->GetMesh()->GetSocketLocation(SocketName) + (Character->GetActorForwardVector() * 50.0f) + (Character->GetActorUpVector() * 50.0f);
+
+		AActor* SpawnActor = GetWorld()->SpawnActor<AActor>(SpawnActorClass, SpawnLocation, Character->GetActorRotation(), SpawnParams);
+		if (ensure(SpawnActor))
+		{
+			SpawnActor->AttachToActor(Character, FAttachmentTransformRules::KeepWorldTransform, SocketName);
+		}
 	}
 
 	switch (CurrentSkillType)
 	{
 	case ESkillType::Projectile:
 		SetAnimMontage(Character->GetCharacterMontages()->ShootProjectile);
+		break;
+	case ESkillType::Channeling:
+		SetAnimMontage(Character->GetCharacterMontages()->ChannelingSkill);
 		break;
 	default:
 		ensure(0);
@@ -194,5 +244,20 @@ void USkillComponent::UseSkill(FUseSkillParams UseSkillParams)
 		ensure(0);
 		return;
 	}
+}
+
+void USkillComponent::StopSkill()
+{
+	if (CurrentSkillType == ESkillType::Invalid || CurrentSkillType == ESkillType::Projectile)
+	{
+		return;
+	}
+
+	if (bPlaying)
+	{
+		StopAnimMontage();
+	}
+
+	FinishSkill();
 }
 
