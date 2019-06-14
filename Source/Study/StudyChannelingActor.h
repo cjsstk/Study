@@ -29,7 +29,10 @@ private:
 	UFUNCTION()
 	void OnStopSkill();
 
-	void TickConsiderSelectTarget();
+	void ConsiderRetarget();
+	void TickSetParticleParameter(float DeltaTime);
+	void TickSetRotation();
+	void TickApplyDamage(float DeltaTime);
 
 	UPROPERTY(VisibleAnywhere)
 	class UParticleSystemComponent* ParticleSystemComponent;
@@ -42,6 +45,14 @@ private:
 
 	UPROPERTY()
 	TArray<AActor*> TargetActors;
+
+	UPROPERTY(EditDefaultsOnly)
+	int32 Damage = 1;
+
+	UPROPERTY(EditDefaultsOnly)
+	float ApplyDamageTimeSeconds = 0.1f;
+
+	float ApplyDamageTimeAgeSeconds = 0.0f;
 
 	UPROPERTY(EditDefaultsOnly)
 	float ChangeTargetTimeSeconds = 1.0f;

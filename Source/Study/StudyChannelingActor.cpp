@@ -5,6 +5,7 @@
 #include "Runtime/Engine/Classes/Particles/ParticleSystemComponent.h"
 
 #include "StudyCharacter.h"
+#include "HealthPointComponent.h"
 
 const static FName SourceParamName = FName(TEXT("BeamSource"));
 const static FName TargetParamName = FName(TEXT("BeamTarget"));
@@ -39,6 +40,7 @@ void AStudyChannelingActor::BeginPlay()
 	}
 
 	ChangeTargetTimeAgeSeconds = ChangeTargetTimeSeconds;
+	ApplyDamageTimeAgeSeconds = ApplyDamageTimeSeconds;
 }
 
 void AStudyChannelingActor::OnBeginOverlapComponent(UPrimitiveComponent * OverlappedComponent, AActor * OtherActor, UPrimitiveComponent * OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
@@ -56,7 +58,7 @@ void AStudyChannelingActor::OnStopSkill()
 	Destroy();
 }
 
-void AStudyChannelingActor::TickConsiderSelectTarget()
+void AStudyChannelingActor::ConsiderRetarget()
 {
 	float NearestDistance = MAX_FLT;
 	AActor* NearestActor = nullptr;
@@ -76,19 +78,22 @@ void AStudyChannelingActor::TickConsiderSelectTarget()
 	TargetActor = NearestActor;
 }
 
-void AStudyChannelingActor::Tick(float DeltaTime)
+void AStudyChannelingActor::TickSetParticleParameter(float DeltaTime)
 {
-	Super::Tick(DeltaTime);
-
+	/** Set particle target parameter */
 	ChangeTargetTimeAgeSeconds -= DeltaTime;
 	if (ChangeTargetTimeAgeSeconds < 0)
 	{
 		ChangeTargetTimeAgeSeconds = ChangeTargetTimeSeconds;
-		TickConsiderSelectTarget();
+		ConsiderRetarget();
 
 		ParticleSystemComponent->SetActorParameter(TargetParamName, TargetActor ? TargetActor : nullptr);
 	}
+}
 
+void AStudyChannelingActor::TickSetRotation()
+{
+	/** Set rotation along character controller rotation */
 	if (Instigator)
 	{
 		AStudyCharacter* Character = Cast<AStudyCharacter>(Instigator);
@@ -98,6 +103,32 @@ void AStudyChannelingActor::Tick(float DeltaTime)
 			SetActorRotation(CharacterControllerRoatation);
 		}
 	}
+}
+
+void AStudyChannelingActor::TickApplyDamage(float DeltaTime)
+{
+	if (TargetActor)
+	{
+		UHealthPointComponent* HealthComp = TargetActor->FindComponentByClass<UHealthPointComponent>();
+		if (HealthComp)
+		{
+			ApplyDamageTimeAgeSeconds -= DeltaTime;
+			if (ApplyDamageTimeAgeSeconds < 0)
+			{
+				ApplyDamageTimeAgeSeconds = ApplyDamageTimeSeconds;
+				HealthComp->ApplyDamage(Damage);
+			}
+		}
+	}
+}
+
+void AStudyChannelingActor::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	TickSetParticleParameter(DeltaTime);
+	TickSetRotation();
+	TickApplyDamage(DeltaTime);
 
 }
 
