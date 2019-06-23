@@ -128,6 +128,8 @@ void AStudyCharacter::MoveForward(float Value)
 		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
 		AddMovementInput(Direction, Value);
 	}
+
+	OnMoveInput.Broadcast(true, Value);
 }
 
 void AStudyCharacter::MoveRight(float Value)
@@ -143,4 +145,6 @@ void AStudyCharacter::MoveRight(float Value)
 		// add movement in that direction
 		AddMovementInput(Direction, Value);
 	}
+
+	OnMoveInput.Broadcast(false, Value);
 }

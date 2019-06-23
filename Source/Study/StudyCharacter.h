@@ -9,6 +9,7 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FCharacterOnUseSkillAnimNotify);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FCharacterOnStopSkill);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FCharacterOnMoveInput, bool, bIsForward, float, Value);
 
 USTRUCT(Blueprintable)
 struct FAnimMontages
@@ -21,6 +22,8 @@ struct FAnimMontages
 	UPROPERTY(EditDefaultsOnly)
 	UAnimMontage* ChannelingSkill;
 
+	UPROPERTY(EditDefaultsOnly)
+	UAnimMontage* ScopeSkill;
 };
 
 UCLASS(config=Game)
@@ -44,6 +47,7 @@ public:
 
 	FCharacterOnUseSkillAnimNotify OnUseSkillAnimNotify;
 	FCharacterOnStopSkill OnStopSkill;
+	FCharacterOnMoveInput OnMoveInput;
 
 protected:
 	/** Called for forwards/backward input */
@@ -78,7 +82,7 @@ private:
 	UPROPERTY(EditDefaultsOnly)
 	FAnimMontages CharacterMontages;
 
-	int32 CurrentSkillNumber = 2;
+	int32 CurrentSkillNumber = 3;
 
 	FString DebugString;
 

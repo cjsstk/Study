@@ -42,6 +42,7 @@ private:
 	void SetAnimMontage(class UAnimMontage* NewAnimMontage);
 	bool PlayAnimMontage();
 	void StopAnimMontage();
+	void JumpToSectionAnimMontage(const FName SectionName);
 	void FinishSkill();
 
 	UFUNCTION()
@@ -56,7 +57,10 @@ private:
 	class UAnimMontage* AnimMontage = nullptr;
 
 	bool bPlaying = false;
-	
+
+	UPROPERTY()
+	class AActor* SpawnActor = nullptr;
+
 	/** 
 	 * SkillData
 	 */

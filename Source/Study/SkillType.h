@@ -8,5 +8,6 @@ enum class ESkillType : uint8
 	Invalid,
 	Projectile,
 	Channeling,
+	Scope,
 	Count		UMETA(Hidden)
 };

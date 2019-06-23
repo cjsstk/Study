@@ -6,7 +6,10 @@
 
 #include "StudyCharacter.h"
 #include "StudyProjectile.h"
+#include "StudyScopeSkillActor.h"
 #include "StudyGameInstance.h"
+
+const static FName SectionEnd = FName(TEXT("End"));
 
 // Sets default values for this component's properties
 USkillComponent::USkillComponent()
@@ -109,14 +112,45 @@ void USkillComponent::StopAnimMontage()
 	bPlaying = false;
 }
 
+void USkillComponent::JumpToSectionAnimMontage(const FName SectionName)
+{
+	if (!bPlaying)
+	{
+		ensure(0);
+		return;
+	}
+
+	if (!ensure(AnimMontage))
+	{
+		return;
+	}
+
+	AStudyCharacter* Character = GetCharacter();
+	if (!ensure(Character))
+	{
+		return;
+	}
+
+	UAnimInstance* AnimInstance = Character->GetMesh() ? Character->GetMesh()->GetAnimInstance() : nullptr;
+
+	if (!ensure(AnimInstance))
+	{
+		return;
+	}
+
+	AnimInstance->Montage_JumpToSection(SectionName, AnimMontage);
+}
+
 void USkillComponent::FinishSkill()
 {
 	AStudyCharacter* Character = GetCharacter();
 	if (ensure(Character))
 	{
 		Character->OnUseSkillAnimNotify.RemoveDynamic(this, &USkillComponent::OnUseSkillAnimNotify);
+		Character->GetController()->SetIgnoreMoveInput(false);
 	}
-
+	
+	SpawnActor = nullptr;
 	bPlaying = false;
 	CurrentSkillCmsKey = 0;
 	CurrentSkillType = ESkillType::Invalid;
@@ -159,6 +193,15 @@ void USkillComponent::OnUseSkillAnimNotify()
 	}
 	case ESkillType::Channeling:
 		break;
+	case ESkillType::Scope:
+	{
+		AStudyScopeSkillActor* ScopeActor = Cast<AStudyScopeSkillActor>(SpawnActor);
+		if (ensure(ScopeActor))
+		{
+			ScopeActor->ExplosionScope();
+		}
+		break;
+	}
 	default:
 		break;
 	}
@@ -218,8 +261,8 @@ void USkillComponent::UseSkill(FUseSkillParams UseSkillParams)
 		const static FName SocketName = FName(TEXT("SpawnLocation"));
 		const FVector SpawnLocation = Character->GetMesh()->GetSocketLocation(SocketName) + (Character->GetActorForwardVector() * 50.0f) + (Character->GetActorUpVector() * 50.0f);
 
-		AActor* SpawnActor = GetWorld()->SpawnActor<AActor>(SpawnActorClass, SpawnLocation, Character->GetActorRotation(), SpawnParams);
-		if (ensure(SpawnActor))
+		SpawnActor = GetWorld()->SpawnActor<AActor>(SpawnActorClass, SpawnLocation, Character->GetActorRotation(), SpawnParams);
+		if (ensure(SpawnActor) && CurrentSkillType != ESkillType::Scope)
 		{
 			SpawnActor->AttachToActor(Character, FAttachmentTransformRules::KeepWorldTransform, SocketName);
 		}
@@ -232,6 +275,10 @@ void USkillComponent::UseSkill(FUseSkillParams UseSkillParams)
 		break;
 	case ESkillType::Channeling:
 		SetAnimMontage(Character->GetCharacterMontages()->ChannelingSkill);
+		break;
+	case ESkillType::Scope:
+		Character->GetController()->SetIgnoreMoveInput(true);
+		SetAnimMontage(Character->GetCharacterMontages()->ScopeSkill);
 		break;
 	default:
 		ensure(0);
@@ -248,16 +295,22 @@ void USkillComponent::UseSkill(FUseSkillParams UseSkillParams)
 
 void USkillComponent::StopSkill()
 {
-	if (CurrentSkillType == ESkillType::Invalid || CurrentSkillType == ESkillType::Projectile)
+	switch (CurrentSkillType)
 	{
+	case ESkillType::Projectile:
 		return;
+	case ESkillType::Channeling:
+		if (bPlaying)
+		{
+			StopAnimMontage();
+		}
+		FinishSkill();
+		break;
+	case ESkillType::Scope:
+		JumpToSectionAnimMontage(SectionEnd);
+		break;
+	default:
+		break;
 	}
-
-	if (bPlaying)
-	{
-		StopAnimMontage();
-	}
-
-	FinishSkill();
 }
 
